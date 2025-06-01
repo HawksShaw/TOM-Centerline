@@ -1,5 +1,4 @@
 import vtk
-import os
 
 def read_file(filename):
     reader = vtk.vtkXMLPolyDataReader()
