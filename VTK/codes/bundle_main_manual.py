@@ -12,7 +12,6 @@ def save_centerline_csv(centerline, out_path):
     np.savetxt(out_path, centerline, delimiter=",", header="x,y,z", comments='')
 
 def render_and_save_image(polydata, centerline, out_path_img):
-    # ... (same as before, or use your previous function)
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputData(polydata)
     actor = vtk.vtkActor()
@@ -96,6 +95,6 @@ def main(input_folder, output_folder):
         render_and_save_image(polydata, centerline, out_img)
 
 if __name__ == "__main__":
-    input_folder = r"C:\Users\robik\PyCharmMiscProject\VTK\models"
-    output_folder = r"C:\Users\robik\PyCharmMiscProject\VTK\centerlines_manual"
+    input_folder = r"C:\Users\robik\PyCharmMiscProject\VTK\models" #Add own path to model database
+    output_folder = r"C:\Users\robik\PyCharmMiscProject\VTK\centerlines_manual" #Add own path to an output directory
     main(input_folder, output_folder)
