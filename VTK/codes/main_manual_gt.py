@@ -56,7 +56,7 @@ def show_model_with_centerlines(model_file, manual_csv, pth_gt_dir):
     model_actor = vtk.vtkActor()
     model_actor.SetMapper(model_mapper)
     model_actor.GetProperty().SetColor(0.85, 0.85, 0.85)
-    model_actor.GetProperty().SetOpacity(0.35)
+    model_actor.GetProperty().SetOpacity(0.25)
 
     manual_pts = load_csv_centerline(manual_csv)
     manual_poly = make_polydata_from_points(manual_pts)

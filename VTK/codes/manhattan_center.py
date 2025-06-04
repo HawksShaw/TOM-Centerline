@@ -2,7 +2,15 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from scipy.ndimage import gaussian_filter1d
 
-def compute_slice_centerline(points, axis=2, dz=0.5, eps=0.5, min_samples=5, max_jump=10.0, sigma=1.0):
+def compute_slice_centerline(points, axis=2, dz=1.0, eps=0.5, min_samples=5, max_jump=10.0, sigma=1.0):
+    """
+    1. Initialize slicing along an axis.
+    2. Find points in a slice
+    3. Cluster the points using DBSCAN
+    4. Compute the centroids of the main cluster.
+    5. Append the chosen centroid to centerline.
+    6. Smoothen centerline using gaussian smoothing.
+    """
     centerline = []
     coord = points[:, axis] #axis = 2 to go through transverse planes (Z)
     zmin, zmax = np.min(coord), np.max(coord) #zmin, zmax because we're on the Z plane :v

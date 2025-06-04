@@ -13,6 +13,11 @@ def save_centerline_csv(centerline, out_path):
     np.savetxt(out_path, centerline, delimiter=",", header="x,y,z", comments='')
 
 def resample_line(line, num=100):
+    """
+    resample a line by num points.
+    connect points by interpolation.
+    readjust num as needed.
+    """
     from scipy.interpolate import interp1d
     if len(line) < 2:
         return line
@@ -23,11 +28,18 @@ def resample_line(line, num=100):
     return interp(new_dists)
 
 def mean_closest_distance(pred, gt):
+    """
+    compute mean closest distanse between manual centerline and
+    ground truth centerline.
+    """
     tree = cKDTree(gt)
     dists, _ = tree.query(pred)
     return np.mean(dists)
 
 def hausdorff_distance(pred, gt):
+    """
+    compute hausdorff distance between manual centerline and ground truth centerline.
+    """
     tree_gt = cKDTree(gt)
     dists_pred_to_gt, _ = tree_gt.query(pred)
     tree_pred = cKDTree(pred)
@@ -35,6 +47,9 @@ def hausdorff_distance(pred, gt):
     return max(np.max(dists_pred_to_gt), np.max(dists_gt_to_pred))
 
 def average_symmetric_distance(pred, gt):
+    """
+    compute average symmetric distance between manual centerline and ground truth centerline.
+    """
     tree_gt = cKDTree(gt)
     dists_pred_to_gt, _ = tree_gt.query(pred)
     tree_pred = cKDTree(pred)
@@ -42,12 +57,15 @@ def average_symmetric_distance(pred, gt):
     return (np.mean(dists_pred_to_gt) + np.mean(dists_gt_to_pred)) / 2
 
 def load_pth_centerline(pth_file):
+    """
+    load .pth files as ground truth centerline.
+    """
     with open(pth_file, 'r', encoding='utf-8') as f:
         content = f.read()
     start = content.find("<path")
     end = content.rfind("</path>") + len("</path>")
     if start == -1 or end == -1:
-        raise ValueError(f"Could not find <path> block in {pth_file}")
+        raise ValueError(f"Could not find <path> in {pth_file}")
     xml_str = content[start:end]
     root = ET.fromstring(xml_str)
 
@@ -62,8 +80,8 @@ def load_pth_centerline(pth_file):
 
 def load_all_segments(model_pth_dir):
     """
-    Loads and concatenates all segment .pth files in a directory.
-    Returns a single (N,3) array of all path points.
+    Load and concatenate all .pth files in a directory.
+    Return a single (N,3) array of all .pth points.
     """
     segment_files = sorted(glob.glob(os.path.join(model_pth_dir, "*.pth")))
     if not segment_files:
@@ -80,6 +98,18 @@ def load_all_segments(model_pth_dir):
     return np.concatenate(all_points, axis=0)
 
 def main(input_folder, pth_folder, output_folder, output_scores_csv):
+    """
+    1. Create an output folder
+    2. Find all .vtp files in the 'models' directory'.
+    3. Make mesh of a chosen file.
+    4. Get endpoints.
+    5. Compute the centerline and save to CSV.
+    6. Locate and compute corresponding ground truth.
+    7. Resample both centerlines to match in num_points.
+    8. Compare using mean_closest_distance, hausdorff_distance and average_symmetric_distance.
+    9. Add the scores to CSV.
+    10. Display average of all distances after computing each .vtp file.
+    """
     os.makedirs(output_folder, exist_ok=True)
     vtp_files = glob.glob(os.path.join(input_folder, "*.vtp"))
     print(f"Found {len(vtp_files)} .vtp files in {input_folder}")
