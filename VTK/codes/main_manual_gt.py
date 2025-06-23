@@ -36,6 +36,14 @@ def load_pth_centerline(pth_file):
         points.append([x, y, z])
     return np.array(points)
 
+def filter_points_by_bounds(points, bounds):
+    mask = (
+        (points[:, 0] >= bounds[0]) & (points[:, 0] <= bounds[1]) &
+        (points[:, 1] >= bounds[2]) & (points[:, 1] <= bounds[3]) &
+        (points[:, 2] >= bounds[4]) & (points[:, 2] <= bounds[5])
+    )
+    return points[mask]
+
 def make_polydata_from_points(pts):
     vtk_points = vtk.vtkPoints()
     for pt in pts:
@@ -71,13 +79,19 @@ def show_model_with_centerlines(model_file, manual_csv, pth_gt_dir):
     pth_files = sorted(glob.glob(os.path.join(pth_gt_dir, "*.pth")))
     if not pth_files:
         print(f"No .pth files found in {pth_gt_dir}")
+    bounds = model.GetBounds()  # Get model bounds for clipping
+
     for idx, pth_file in enumerate(pth_files):
         try:
             gt_pts = load_pth_centerline(pth_file)
+            gt_pts_clipped = filter_points_by_bounds(gt_pts, bounds)
         except Exception as e:
             print(f"Failed to load {pth_file}: {e}")
             continue
-        gt_poly = make_polydata_from_points(gt_pts)
+        if len(gt_pts_clipped) < 2:
+            print(f"Clipped GT in {pth_file} has <2 points, skipping")
+            continue
+        gt_poly = make_polydata_from_points(gt_pts_clipped)
         gt_mapper = vtk.vtkPolyDataMapper()
         gt_mapper.SetInputData(gt_poly)
         gt_actor = vtk.vtkActor()

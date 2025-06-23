@@ -9,7 +9,7 @@ def load_pth_centerline(pth_file):
     start = content.find("<path")
     end = content.rfind("</path>") + len("</path>")
     if start == -1 or end == -1:
-        raise ValueError(f"Could not find <path> block in {pth_file}")
+        raise ValueError(f"Could not find <path> in {pth_file}")
     xml_str = content[start:end]
     root = ET.fromstring(xml_str)
 
@@ -59,8 +59,8 @@ def save_centerline_csv(centerline, out_path):
 
 def load_all_segments(model_pth_dir):
     """
-    Loads and concatenates all segment .pth files in a directory.
-    Returns a single (N,3) array of all path points.
+    Load and concatenate all segment .pth files in a directory.
+    Return a single (N,3) array of all path points.
     """
     segment_files = sorted(glob.glob(os.path.join(model_pth_dir, "*.pth")))
     if not segment_files:
@@ -142,6 +142,8 @@ def main(input_folder, pth_folder, output_folder, output_scores_csv):
         #     score_file.write(f"\nAVERAGE,{avg_mean},{avg_haus},{avg_avg_sym}\n")
         # else:
         #     print("\nNo models were scored (no valid ground truth found).")
+
+
 
 if __name__ == "__main__":
     input_folder = r"C:\Users\robik\PyCharmMiscProject\VTK\models"

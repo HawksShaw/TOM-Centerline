@@ -1,22 +1,28 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 from scipy.ndimage import gaussian_filter1d
+import vtk
 
-def compute_slice_centerline(points, axis=2, dz=1.0, eps=0.5, min_samples=5, max_jump=10.0, sigma=1.0):
-    """
-    1. Initialize slicing along an axis.
-    2. Find points in a slice
-    3. Cluster the points using DBSCAN
-    4. Compute the centroids of the main cluster.
-    5. Append the chosen centroid to centerline.
-    6. Smoothen centerline using gaussian smoothing.
-    """
+def filter_points_inside_mesh(points, polydata):
+    enclosed = vtk.vtkSelectEnclosedPoints()
+    enclosed.SetSurfaceData(polydata)
+    vtk_points = vtk.vtkPoints()
+    for pt in points:
+        vtk_points.InsertNextPoint(pt)
+    test_poly = vtk.vtkPolyData()
+    test_poly.SetPoints(vtk_points)
+    enclosed.SetInputData(test_poly)
+    enclosed.Update()
+    mask = [enclosed.IsInside(i) for i in range(points.shape[0])]
+    return points[mask]
+
+def compute_slice_centerline(points, polydata=None, axis=2, dz=1.0, eps=0.5, min_samples=5, max_jump=10.0, sigma=1.0):
     centerline = []
-    coord = points[:, axis] #axis = 2 to go through transverse planes (Z)
-    zmin, zmax = np.min(coord), np.max(coord) #zmin, zmax because we're on the Z plane :v
-    slices = np.arange(zmin, zmax, dz) #dz should be the same as the voxel depth but I'm too lazy to check so we go with 1.0
+    coord = points[:, axis]
+    zmin, zmax = np.min(coord), np.max(coord)
+    slices = np.arange(zmin, zmax, dz)
     prev_center = None
-    axes = [i for i in range(3) if i != axis] #We need the other two axes stored for later clustering
+    axes = [i for i in range(3) if i != axis]
     for slice in slices:
         mask = (coord >= slice) & (coord < slice + dz)
         slice_pts = points[mask]
@@ -42,10 +48,15 @@ def compute_slice_centerline(points, axis=2, dz=1.0, eps=0.5, min_samples=5, max
             close_clusters = np.where(dists < max_jump)[0]
             if len(close_clusters) > 0:
                 chosen = close_clusters[np.argmin(dists[close_clusters])]
+            else:
+                chosen = np.argmin(dists)
         chosen_center = centroids[chosen]
         centerline.append(chosen_center)
         prev_center = chosen_center
     centerline = np.array(centerline)
     if sigma > 0 and len(centerline) > 1:
         centerline = gaussian_filter1d(centerline, sigma=sigma, axis=0)
+    # Remove any points outside the mesh surface
+    if polydata is not None and len(centerline) > 0:
+        centerline = filter_points_inside_mesh(centerline, polydata)
     return centerline

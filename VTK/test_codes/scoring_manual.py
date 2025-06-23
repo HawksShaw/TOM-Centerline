@@ -92,7 +92,7 @@ def show_model_with_centerlines(model_file, auto_csv, pth_gt):
 # --------- Example usage ---------
 if __name__ == "__main__":
     # Provide your file paths here
-    model_file = r"C:\Users\robik\PyCharmMiscProject\VTK\models\0161_0001.vtp"
+    model_file = r"/VTK/models/0161_0001.vtp"
     auto_csv = r"C:\Users\robik\PyCharmMiscProject\VTK\centerlines_auto\0161_0001_centerline.csv"
     pth_gt = r"C:\Users\robik\PyCharmMiscProject\VTK\pths\0161_0001\paths\aorta.pth"
     show_model_with_centerlines(model_file, auto_csv, pth_gt)

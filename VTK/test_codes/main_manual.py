@@ -4,7 +4,7 @@ from make_endpoints_manual import make_endpoints_manual
 from manhattan_center import compute_slice_centerline
 from visualize_centerline import visualize_centerline
 
-filename = r'C:\Users\robik\PyCharmMiscProject\VTK\models\0140_2001.vtp'
+filename = r'/VTK/models/0140_2001.vtp'
 polydata = read_file(filename)
 points = make_mesh(polydata)
 start_id, end_id = make_endpoints_manual(polydata)
